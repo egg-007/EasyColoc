@@ -2,64 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Expense;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreExpenseRequest;
+use App\Models\Colocation;
 
 class ExpenseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(StoreExpenseRequest $request, Colocation $colocation)
     {
-        //
-    }
+        $user = auth()->user();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $data = $request->validated();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Optional: additional rule check for payer_id and category_id in Form Request, 
+        // doing a quick sanity check here for safety.
+        $payerIsMember = $colocation->memberships()
+            ->where('user_id', $data['payer_id'])
+            ->whereNull('left_at')
+            ->exists();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Expense $expense)
-    {
-        //
-    }
+        abort_if(!$payerIsMember, 403, 'Le payeur sélectionné n\'appartient pas à la colocation.');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Expense $expense)
-    {
-        //
-    }
+        abort_if(!\App\Models\Category::where('id', $data['category_id'])->where('colocation_id', $colocation->id)->exists(), 403, 'Catégorie invalide.');
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Expense $expense)
-    {
-        //
-    }
+        \App\Models\Expense::create([
+            'colocation_id' => $colocation->id,
+            'payer_id' => $data['payer_id'],
+            'category_id' => $data['category_id'],
+            'title' => $data['title'],
+            'amount' => $data['amount'],
+            'expense_date' => $data['expense_date'],
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Expense $expense)
-    {
-        //
+        return redirect()
+            ->route('colocations.show', $colocation)
+            ->with('success', 'Expense added successfully.');
     }
 }
