@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ColocationInvitation;
 use App\Models\Colocation;
 use App\Services\InvitationService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreInvitationRequest;
+use Illuminate\Support\Facades\Mail;
 
 class InvitationController extends Controller
 {
 
-    public function store(Request $request, Colocation $colocation, InvitationService $invitationService)
+    public function store(StoreInvitationRequest $request, Colocation $colocation, InvitationService $invitationService)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-        ]);
+        $validated = $request->validated();
 
-        $invitationService->createInvitation($colocation,auth()->user(),$validated['email']);
+        $invitation = $invitationService->createInvitation($colocation, auth()->user(), $validated['email']);
+        
+        Mail::to($validated['email'])->send(
+            new ColocationInvitation($invitation, $colocation->name, auth()->user()->name)
+        );
 
         return redirect()->route('colocations.show', $colocation)->with('success', 'Invitation sent successfully.');
-
     }
 
 

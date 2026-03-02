@@ -17,13 +17,15 @@ class  InvitationService
         if (! $isOwner) {
             throw new Exception('Only the owner can send invitations.');
         }
-        return Invitation::create([
+        $invitation = Invitation::create([
             'colocation_id' => $colocation->id,
             'email' => $email,
             'token' => bin2hex(random_bytes(16)),
             'status' => 'pending',
             'expired_at' => now()->addDays(3),
         ]);
+
+        return $invitation;
     }
 
     public function acceptInvitation(string $token, User $user)
