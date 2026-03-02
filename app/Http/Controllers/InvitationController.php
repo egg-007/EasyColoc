@@ -2,64 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invitation;
+use App\Models\Colocation;
+use App\Services\InvitationService;
 use Illuminate\Http\Request;
 
 class InvitationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function store(Request $request, Colocation $colocation, InvitationService $invitationService)
     {
-        //
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $invitationService->createInvitation($colocation,auth()->user(),$validated['email']);
+
+        return redirect()->route('colocations.show', $colocation)->with('success', 'Invitation sent successfully.');
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function accept(string $token, InvitationService $invitationService)
     {
-        //
+        $colocation = $invitationService->acceptInvitation($token, auth()->user());
+        return redirect()->route('colocations.show', $colocation)->with('success', 'Invitation accepted successfully.');
+        
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function refuse(string $token, InvitationService $invitationService)
     {
-        //
-    }
+    
+        $invitationService->refuseInvitation($token, auth()->user());
+        return redirect()->back()->with('success', 'Invitation refused successfully.');
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Invitation $invitation)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Invitation $invitation)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Invitation $invitation)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Invitation $invitation)
-    {
-        //
     }
 }
