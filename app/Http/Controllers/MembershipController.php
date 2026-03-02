@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Membership;
+use App\Services\BalanceService;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class MembershipController extends Controller
@@ -58,8 +60,41 @@ class MembershipController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Membership $membership)
+    public function destroy(Membership $membership, BalanceService $balanceService)
     {
-        //
+        $user = auth()->user();
+        $isOwner = $membership->colocation->memberships()->where('user_id', $user->id)
+            ->where(function($q) { $q->where('role', 'owner')->orWhere('role', 'Owner'); })
+            ->whereNull('left_at')->exists();
+
+        if ($membership->user_id !== $user->id && !$isOwner) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $balances = $balanceService->calculate($membership->colocation);
+        $balance = $balances[$membership->user_id]['balance'] ?? 0;
+
+        if ($balance < 0) {
+            $membership->user->decrement('reputation_score');
+            
+            // Logique 'règle actuelle' de transfert de dette si l'owner retire un membre
+            if ($isOwner && $membership->user_id !== $user->id) {
+                // Pour simplifier le transfert : on simule que l'owner a payé la dette du user 
+                // envers la colocation pour remettre sa balance à 0 (imputer la dette à l'owner)
+                Payment::create([
+                    'colocation_id' => $membership->colocation_id,
+                    'from_user_id' => $membership->user_id,
+                    'to_user_id' => $user->id,
+                    'amount' => abs($balance),
+                    'paid_at' => now(),
+                ]);
+            }
+        } else {
+            $membership->user->increment('reputation_score');
+        }
+
+        $membership->update(['left_at' => now()]);
+
+        return redirect()->back()->with('success', 'Membre retiré/A quitté la colocation.');
     }
 }

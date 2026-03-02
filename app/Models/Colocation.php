@@ -24,7 +24,7 @@ class Colocation extends Model
 
     public function expenses()
     {
-        return $this->hasMany(Expense::class, 'payer_id');
+        return $this->hasMany(Expense::class);
     }
 
     public function categories()
@@ -40,5 +40,19 @@ class Colocation extends Model
     public function invitations()
     {
         return $this->hasMany(Invitation::class);
+    }
+
+    /**
+     * Check if the given user is an active owner of this colocation.
+     */
+    public function isOwnedBy(User $user): bool
+    {
+        return $this->memberships()
+            ->where('user_id', $user->id)
+            ->where(function($q) {
+                $q->where('role', 'owner')->orWhere('role', 'Owner');
+            })
+            ->whereNull('left_at')
+            ->exists();
     }
 }
