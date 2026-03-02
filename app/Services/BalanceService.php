@@ -26,17 +26,31 @@ class BalanceService
 
         $balances = [];
 
+        $payments = $colocation->payments;
+
         foreach ($members as $member) {
 
-            $paid = $expenses
+            $paidExpenses = $expenses
                 ->where('payer_id', $member->id)
                 ->sum('amount');
+                
+            $paymentsSent = $payments
+                ->where('from_user_id', $member->id)
+                ->sum('amount');
+                
+            $paymentsReceived = $payments
+                ->where('to_user_id', $member->id)
+                ->sum('amount');
+
+            // Balance = (Expenses paid out of pocket + direct payments sent to others) 
+            //         - (Fair share of expenses + direct payments received from others)
+            $balance = ($paidExpenses + $paymentsSent) - ($sharePerMember + $paymentsReceived);
 
             $balances[$member->id] = [
                 'user'    => $member,
-                'paid'    => $paid,
+                'paid'    => $paidExpenses,
                 'share'   => $sharePerMember,
-                'balance' => $paid - $sharePerMember,
+                'balance' => $balance,
             ];
         }
 
