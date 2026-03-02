@@ -11,7 +11,21 @@ class UpdateColocationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        if (!auth()->check()) {
+            return false;
+        }
+
+        $colocation = $this->route('colocation');
+
+        if (!$colocation) return false;
+
+        return auth()->user()->memberships()
+            ->where('colocation_id', $colocation->id)
+            ->where(function ($query) {
+                $query->where('role', 'owner')->orWhere('role', 'Owner');
+            })
+            ->whereNull('left_at')
+            ->exists();
     }
 
     /**

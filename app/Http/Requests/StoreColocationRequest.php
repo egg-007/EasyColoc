@@ -11,7 +11,12 @@ class StoreColocationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        if (!auth()->check()) {
+            return false;
+        }
+
+        // Prevent creating if already in an active colocation
+        return !auth()->user()->memberships()->whereNull('left_at')->exists();
     }
 
     /**
