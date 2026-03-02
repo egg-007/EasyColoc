@@ -1,17 +1,25 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@section('content')
+
+<div class="bg-white p-10 rounded-2xl shadow text-center max-w-xl mx-auto">
+
+    <h1 class="text-3xl font-bold mb-4">
+        Welcome, {{ auth()->user()->name }}
+    </h1>
+
+    <p class="text-gray-500 mb-8">
+        Reputation Score:
+        <span class="font-semibold">
+            {{ auth()->user()->reputation_score }}
+        </span>
+    </p>
+
+    <a href="{{ route('colocations.create') }}"
+       class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition">
+        + Create New Colocation
+    </a>
+
+</div>
+
+@endsection
