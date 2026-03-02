@@ -14,7 +14,7 @@ class Invitation extends Model
         'email',
         'token',
         'status',
-        'expires_at',
+        'expired_at',
     ];
 
     public function colocation()
