@@ -77,10 +77,7 @@ class MembershipController extends Controller
         if ($balance < 0) {
             $membership->user->decrement('reputation_score');
             
-            // Logique 'règle actuelle' de transfert de dette si l'owner retire un membre
             if ($isOwner && $membership->user_id !== $user->id) {
-                // Pour simplifier le transfert : on simule que l'owner a payé la dette du user 
-                // envers la colocation pour remettre sa balance à 0 (imputer la dette à l'owner)
                 Payment::create([
                     'colocation_id' => $membership->colocation_id,
                     'from_user_id' => $membership->user_id,

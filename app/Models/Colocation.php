@@ -42,9 +42,6 @@ class Colocation extends Model
         return $this->hasMany(Invitation::class);
     }
 
-    /**
-     * Check if the given user is an active owner of this colocation.
-     */
     public function isOwnedBy(User $user): bool
     {
         return $this->memberships()

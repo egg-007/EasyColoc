@@ -13,8 +13,6 @@ class ExpenseController extends Controller
 
         $data = $request->validated();
 
-        // Optional: additional rule check for payer_id and category_id in Form Request, 
-        // doing a quick sanity check here for safety.
         $payerIsMember = $colocation->memberships()
             ->where('user_id', $data['payer_id'])
             ->whereNull('left_at')

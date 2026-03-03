@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->timestamps();
-            $table->unique(['colocation_id','name']);  //A category name must be unique inside a colocation.
+            $table->unique(['colocation_id','name']); 
         });
     }
 

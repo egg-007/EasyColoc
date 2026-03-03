@@ -12,7 +12,6 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Must be authenticated and must be Owner of the active colocation
         if (!auth()->check()) {
             return false;
         }
@@ -21,7 +20,6 @@ class UpdateCategoryRequest extends FormRequest
             ->whereNull('left_at')
             ->first();
 
-        // Also verify the category being updated belongs to their colocation
         $category = $this->route('category');
 
         return $membership 
@@ -30,11 +28,7 @@ class UpdateCategoryRequest extends FormRequest
             && $category->colocation_id === $membership->colocation_id;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+  
     public function rules(): array
     {
         return [
